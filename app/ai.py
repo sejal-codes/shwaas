@@ -10,6 +10,7 @@ tags), and Gemini's JSON is re-validated through Plan.from_dict before it is tru
 from __future__ import annotations
 
 import json
+import logging
 import re
 from dataclasses import dataclass
 from typing import Any, Mapping
@@ -17,6 +18,8 @@ from typing import Any, Mapping
 from app.explain import assessment_fallback, plan_fallback
 from app.gemini import GeminiClient, GeminiError
 from app.models import ActivityKind, Plan, Timing, TravelMode
+
+log = logging.getLogger(__name__)
 
 LANGUAGES = {"en": "English", "hi": "Hindi"}
 _CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f]")
@@ -96,7 +99,8 @@ class Assistant:
                     system=_PARSE_SYSTEM, prompt=f"<user_plan>{cleaned}</user_plan>", json_mode=True
                 )
             )
-        except GeminiError:
+        except GeminiError as err:
+            log.warning("Gemini plan parsing failed: %s", err)
             return PlanParse("unavailable")
 
         if data.get("status") == "needs_clarification":
@@ -117,7 +121,8 @@ class Assistant:
             return Explanation(fallback(facts), "template")
         prompt = f"Write in {LANGUAGES[language]}.\nFacts (JSON):\n{json.dumps(facts, sort_keys=True)}"
         try:
-            text = self._client.generate(system=_EXPLAIN_SYSTEM, prompt=prompt, max_tokens=700)
-        except GeminiError:
+            text = self._client.generate(system=_EXPLAIN_SYSTEM, prompt=prompt)
+        except GeminiError as err:
+            log.warning("Gemini explanation failed: %s", err)
             return Explanation(fallback(facts), "template")
         return Explanation(text[:1200], "gemini")
