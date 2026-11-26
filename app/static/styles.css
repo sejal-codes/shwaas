@@ -532,3 +532,5 @@ input.finder__input:focus-visible { outline: 3px solid var(--focus); }
 /* the instruction pill spans the stage and centres itself, so it never gets squeezed on narrow screens */
 .stage__title { left: 1rem; right: 1rem; translate: none; width: fit-content; max-width: calc(100% - 2rem); margin-inline: auto; border-radius: 22px; }
 @media (min-width: 40.01rem) { .stage__title { max-width: calc(100% - 20rem); } }
+
+.meter__detail { margin: .6rem 0 0; color: var(--muted); font-size: .92rem; line-height: 1.45; }

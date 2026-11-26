@@ -186,6 +186,17 @@ test("a valid submit sends every answer, including the purifier, and shows the r
   assert.equal(ui.$("plan-section").hidden, false);
 });
 
+test("the results state the units and where the number came from", async () => {
+  const ui = await assessed();
+  const text = ui.$("results-body").textContent;
+  assert.ok(text.includes("µg/m³") && text.includes("0–500"));
+  assert.ok(text.includes("atmospheric model"), "a model estimate is labelled as one");
+  const measured = fixture("assess");
+  Object.assign(measured.outdoor, { source: "measured", station: "Hebbal", distance_km: 3.2, observed: new Date(Date.now() - 20 * 60000).toISOString() });
+  const ui2 = await assessed({ routes: { "/api/assess": reply(measured) } });
+  assert.ok(ui2.$("results-body").textContent.includes("Measured by the monitor at Hebbal, 3.2 km away, 20 min ago."));
+});
+
 test("the household answer decides the profile that is sent", async () => {
   for (const [text, profile] of [["Me and my kids", "family_with_children"], ["Me and my parents", "elderly"], ["Only me", "adult"]]) {
     const ui = await boot({ routes: standardRoutes() });

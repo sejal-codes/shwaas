@@ -34,6 +34,7 @@
     ],
     "high": 396,
     "low": 237,
+    "pm25": 141.0,
     "score": 317,
     "severity": "very_poor"
   },
@@ -41,6 +42,12 @@
   "outdoor": {
     "alert": "Air quality is dangerous today: limit time outdoors, especially for children, older adults and anyone with breathing problems.",
     "aqi": 324,
-    "severity": "very_poor"
+    "distance_km": null,
+    "observed": null,
+    "pm25": 150.0,
+    "scale": "india_naqi",
+    "severity": "very_poor",
+    "source": "model",
+    "station": null
   }
 }

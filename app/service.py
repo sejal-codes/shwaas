@@ -8,7 +8,7 @@ from typing import Any, Mapping
 from app.activity import advise
 from app.ai import Assistant
 from app.air_data import AirDataProvider, AirReading
-from app.aqi import severity, severity_alert
+from app.aqi import naqi_to_pm25, severity, severity_alert
 from app.indoor import estimate_indoor_aqi, suggest_fixes
 from app.models import ActivityKind, HomeProfile, Plan, Profile, Timing
 
@@ -73,6 +73,8 @@ class AirQualityService:
         fixes = suggest_fixes(outdoor, home)
         facts = {
             "outdoor_aqi": outdoor,
+            "outdoor_pm25_ug_m3": reading.pm25,
+            "air_data": "measured by a nearby monitor" if reading.source == "measured" else "estimated by an atmospheric model",
             "outdoor_severity": severity(outdoor).value,
             "indoor_score": indoor.score,
             "indoor_low": indoor.low,
@@ -83,8 +85,18 @@ class AirQualityService:
         explanation = self._assistant.explain(facts, language, kind="assessment")
         return {
             "location": reading.location.name,
-            "outdoor": {"aqi": outdoor, "severity": severity(outdoor).value, "alert": severity_alert(outdoor)},
-            "indoor": to_jsonable(indoor),
+            "outdoor": {
+                "aqi": outdoor,
+                "severity": severity(outdoor).value,
+                "alert": severity_alert(outdoor),
+                "pm25": reading.pm25,
+                "scale": "india_naqi",
+                "source": reading.source,
+                "station": reading.station,
+                "distance_km": reading.distance_km,
+                "observed": reading.observed,
+            },
+            "indoor": {**to_jsonable(indoor), "pm25": naqi_to_pm25(indoor.score)},
             "fixes": to_jsonable(fixes),
             "explanation": to_jsonable(explanation),
             "estimate_note": "Indoor values are estimates based on your answers, not measurements.",

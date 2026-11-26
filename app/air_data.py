@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Callable, Mapping
 
 import requests
@@ -14,6 +14,7 @@ import requests
 from app.aqi import pm25_to_naqi
 from app.cache import TTLCache
 from app.config import Settings
+from app.measured import MeasuredProvider
 
 log = logging.getLogger(__name__)
 
@@ -38,7 +39,12 @@ class AirReading:
     location: Location
     current_aqi: int
     current_hour: int
-    hourly_aqi: dict[int, int]  # hour of day (local) -> NAQI, today only
+    hourly_aqi: dict[int, int]  # hour of day (local) -> NAQI, today only (always the model forecast)
+    pm25: float = 0.0  # ug/m3 behind current_aqi
+    source: str = "model"  # "measured" (a monitor) or "model" (atmospheric model estimate)
+    station: str | None = None
+    distance_km: float | None = None
+    observed: str | None = None
 
 
 # ---------------------------------------------------------------- validation
@@ -96,14 +102,15 @@ def parse_air(payload: Mapping[str, Any], location: Location) -> AirReading:
         current = payload["current"]
         today = current["time"][:10]
         current_hour = int(current["time"][11:13])
-        current_aqi = pm25_to_naqi(float(current["pm2_5"]))
+        pm25 = round(float(current["pm2_5"]), 1)
+        current_aqi = pm25_to_naqi(pm25)
         hourly: dict[int, int] = {}
-        for stamp, pm25 in zip(payload["hourly"]["time"], payload["hourly"]["pm2_5"]):
-            if pm25 is not None and stamp[:10] == today:
-                hourly[int(stamp[11:13])] = pm25_to_naqi(float(pm25))
+        for stamp, hour_pm25 in zip(payload["hourly"]["time"], payload["hourly"]["pm2_5"]):
+            if hour_pm25 is not None and stamp[:10] == today:
+                hourly[int(stamp[11:13])] = pm25_to_naqi(float(hour_pm25))
     except (KeyError, TypeError, ValueError, IndexError):
         raise AirDataError("The air-quality service returned an unexpected response.") from None
-    return AirReading(location, current_aqi, current_hour, hourly)
+    return AirReading(location, current_aqi, current_hour, hourly, pm25=pm25)
 
 
 # ------------------------------------------------------------------- network
@@ -134,7 +141,13 @@ def _place_label(country: Any, state: Any) -> str:
 
 
 class AirDataProvider:
-    def __init__(self, settings: Settings, http_get: Callable[..., Mapping[str, Any]] = _get_json):
+    def __init__(
+        self,
+        settings: Settings,
+        http_get: Callable[..., Mapping[str, Any]] = _get_json,
+        measured: MeasuredProvider | None = None,
+    ):
+        self._measured = measured
         self._timeout = settings.http_timeout_s
         self._http_get = http_get
         self._geo_cache = TTLCache(settings.geocode_cache_ttl_s, settings.cache_max_entries)
@@ -167,7 +180,7 @@ class AirDataProvider:
         key = (round(location.latitude, 2), round(location.longitude, 2))
         cached = self._air_cache.get(key)
         if cached is not None:
-            return AirReading(location, cached.current_aqi, cached.current_hour, cached.hourly_aqi)
+            return replace(cached, location=location)
         payload = self._http_get(
             AIR_URL,
             {
@@ -181,5 +194,15 @@ class AirDataProvider:
             self._timeout,
         )
         reading = parse_air(payload, location)
+        if self._measured and (found := self._measured.nearest_pm25(location.latitude, location.longitude)):
+            reading = replace(
+                reading,
+                current_aqi=pm25_to_naqi(found.pm25),
+                pm25=found.pm25,
+                source="measured",
+                station=found.station,
+                distance_km=found.distance_km,
+                observed=found.observed,
+            )
         self._air_cache.set(key, reading)
         return reading

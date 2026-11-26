@@ -187,7 +187,13 @@
     "short.windows": "your windows",
     "short.cooking": "how you cook",
     "short.heating": "how you keep warm",
-    "short.purifier": "the air purifier"
+    "short.purifier": "the air purifier",
+    "units.line": "AQI on India’s 0–500 scale. Fine particles (PM2.5): about {value} µg/m³.",
+    "units.indoor": "Roughly {value} µg/m³ of fine particles (an estimate).",
+    "source.measured": "Measured by the monitor at {station}, {km} km away, {ago}.",
+    "source.model": "No monitor with a recent reading within {km} km, so this is an estimate from an atmospheric model.",
+    "time.minutes_ago": "{n} min ago",
+    "time.hours_ago": "{n} h ago"
   },
   "hi": {
     "app.title": "श्वास: वायु गुणवत्ता सहायक",
@@ -377,6 +383,12 @@
     "short.windows": "खिड़कियाँ",
     "short.cooking": "खाना कैसे पकाते हैं",
     "short.heating": "गर्म कैसे रखते हैं",
-    "short.purifier": "एयर प्यूरीफायर"
+    "short.purifier": "एयर प्यूरीफायर",
+    "units.line": "भारत के 0–500 पैमाने पर AQI। महीन कण (PM2.5): लगभग {value} µg/m³।",
+    "units.indoor": "महीन कणों का लगभग {value} µg/m³ (अनुमान)।",
+    "source.measured": "{station} के मॉनिटर से मापा गया, {km} किमी दूर, {ago}।",
+    "source.model": "{km} किमी के भीतर किसी मॉनिटर की हाल की रीडिंग नहीं है, इसलिए यह वायुमंडलीय मॉडल का अनुमान है।",
+    "time.minutes_ago": "{n} मिनट पहले",
+    "time.hours_ago": "{n} घंटे पहले"
   }
 }

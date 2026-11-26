@@ -62,6 +62,16 @@ def pm25_to_naqi(pm25: float) -> int:
     return MAX_AQI
 
 
+def naqi_to_pm25(aqi: float) -> float:
+    """The PM2.5 (ug/m3) that corresponds to an index value on the same scale (for showing units)."""
+    aqi = normalize_aqi(aqi)
+    for low, high, index_low, index_high in _PM25_BANDS:
+        if aqi <= index_high:
+            span = (index_high - index_low) or 1
+            return round(low + (high - low) * max(aqi - index_low, 0) / span, 1)
+    return float(_PM25_BANDS[-1][1])
+
+
 def severity(aqi: float) -> Severity:
     aqi = normalize_aqi(aqi)
     for limit, label in _SEVERITY_LIMITS:

@@ -81,6 +81,13 @@ the Indian NAQI using CPCB bands, applied to the reading we have (CPCB uses 24-h
 - `POST /api/assess` with `{home, location: {city} or {latitude, longitude}, language}`
 - `POST /api/plan` with `{home, location, timing: "fixed"|"flexible", plan_text}` or a structured `plan`
 
+## Real monitor data (optional)
+By default the outdoor figure is an estimate from an atmospheric model (Open-Meteo). Set a free `OPENAQ_API_KEY`
+(explore.openaq.org/register) and the app uses the nearest real monitor within 25 km that reported in the last 3 hours,
+and says which station, how far and how old. If there is none, it falls back to the model and says so. The index is
+India's 0-500 NAQI computed from PM2.5, and the page shows the PM2.5 in µg/m³ next to it.
+Check what monitors exist near a place with `python -m scripts.check_openaq 14.37 75.67`.
+
 ## Configuration
 Set `GEMINI_API_KEY` as an environment variable or Codespaces secret. Optionally set `GEMINI_MODEL` to a comma-separated
 list of model names (tried in order; the default is a fail-over chain of four).

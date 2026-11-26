@@ -49,7 +49,19 @@ function explanationCard(index, explanation) {
 }
 
 // ------------------------------------------------------------------ assessment
-function meterCard(index, { title, value, severity, place, note, estimateLine, showGauge }) {
+function ago(observed) {
+  const minutes = Math.max(0, Math.round((Date.now() - Date.parse(observed)) / 60000));
+  return minutes < 60 ? t("time.minutes_ago", { n: minutes }) : t("time.hours_ago", { n: Math.round(minutes / 60) });
+}
+
+function sourceLine(outdoor) {
+  if (outdoor.source === "measured") {
+    return t("source.measured", { station: outdoor.station, km: outdoor.distance_km, ago: ago(outdoor.observed) });
+  }
+  return t("source.model", { km: 25 });
+}
+
+function meterCard(index, { title, value, severity, place, note, estimateLine, showGauge, details = [] }) {
   return card(
     index,
     el("h3", { text: title }),
@@ -58,6 +70,7 @@ function meterCard(index, { title, value, severity, place, note, estimateLine, s
     estimateLine ? el("p", { className: "meter__place", text: estimateLine }) : null,
     chip(severity),
     showGauge ? gauge(value, severity) : null,
+    ...details.map((text) => el("p", { className: "meter__detail", text })),
     note ? el("p", { className: "muted", text: note }) : null,
   );
 }
@@ -94,7 +107,8 @@ export function renderAssessment(root, data) {
   const meters = el(
     "div",
     { className: "grid-2" },
-    meterCard(1, { title: t("outdoor.title"), value: outdoor.aqi, severity: outdoor.severity, place: location, showGauge: true }),
+    meterCard(1, { title: t("outdoor.title"), value: outdoor.aqi, severity: outdoor.severity, place: location, showGauge: true,
+      details: [t("units.line", { value: outdoor.pm25 }), sourceLine(outdoor)] }),
     meterCard(2, {
       title: t("indoor.title"),
       value: indoor.score,
@@ -102,6 +116,7 @@ export function renderAssessment(root, data) {
       estimateLine: t("indoor.estimate", { score: indoor.score, low: indoor.low, high: indoor.high }),
       note: t("indoor.note"),
       showGauge: true,
+      details: [t("units.indoor", { value: indoor.pm25 })],
     }),
   );
   for (const node of [alert, meters, factorsCard(3, indoor.factors), fixesCard(4, fixes), explanationCard(5, explanation)]) {

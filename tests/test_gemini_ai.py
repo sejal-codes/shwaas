@@ -289,3 +289,8 @@ def test_real_post_marks_503_and_timeouts_retryable_but_403_not(monkeypatch):
 def test_parse_prompt_defines_what_each_kind_means():
     from app.ai import _PARSE_SYSTEM
     assert "own trip to work, college" in _PARSE_SYSTEM and "taking or picking up a child" in _PARSE_SYSTEM
+
+
+def test_explanations_must_not_invent_other_pollutants():
+    from app.ai import _EXPLAIN_SYSTEM
+    assert "fine particle pollution (PM2.5)" in _EXPLAIN_SYSTEM and "never name any other pollutant" in _EXPLAIN_SYSTEM

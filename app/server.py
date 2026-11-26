@@ -10,6 +10,7 @@ from app.ai import Assistant
 from app.air_data import AirDataError, AirDataProvider
 from app.config import Settings
 from app.gemini import GeminiClient
+from app.measured import MeasuredProvider
 from app.ratelimit import RateLimiter
 from app.service import AirQualityService
 
@@ -18,7 +19,8 @@ log = logging.getLogger(__name__)
 
 def build_service(settings: Settings) -> AirQualityService:
     client = GeminiClient(settings.gemini_api_key, settings.gemini_models) if settings.gemini_api_key else None
-    return AirQualityService(AirDataProvider(settings), Assistant(client, settings.max_plan_chars))
+    measured = MeasuredProvider(settings) if settings.openaq_api_key else None
+    return AirQualityService(AirDataProvider(settings, measured=measured), Assistant(client, settings.max_plan_chars))
 
 
 def create_app(service: AirQualityService | None = None, settings: Settings | None = None) -> Flask:
