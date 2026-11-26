@@ -69,3 +69,37 @@ def test_travel_only_computed_for_trips(home):
 
 def test_disclaimer_is_always_present(home):
     assert "not medical advice" in advise(plan(K.ERRAND), home, 100).disclaimer
+
+
+# ---- child rules apply only when children are actually travelling
+def test_children_rules_apply_only_to_school_runs(home):
+    from app.models import TravelMode
+
+    def modes(advice):
+        return {o.mode for o in advice.travel.options}
+
+    errand = advise(plan(K.ERRAND, km=1.5), home, 350)  # family household, adult traveller
+    school = advise(plan(K.SCHOOL_RUN, km=1.5), home, 350)
+    assert TravelMode.WALK in modes(errand)
+    assert TravelMode.WALK not in modes(school)
+    assert not any("children" in tip.lower() for tip in errand.mask.fit_tips)
+    assert any("children" in tip.lower() for tip in school.mask.fit_tips)
+
+
+def test_traveller_profile_rules():
+    from app.models import traveller_profile
+    assert traveller_profile(plan(K.WORK_COMMUTE), Profile.FAMILY_WITH_CHILDREN) is Profile.ADULT
+    assert traveller_profile(plan(K.SCHOOL_RUN), Profile.FAMILY_WITH_CHILDREN) is Profile.FAMILY_WITH_CHILDREN
+    assert traveller_profile(plan(K.WORK_COMMUTE), Profile.ELDERLY) is Profile.ELDERLY
+
+
+# ---- extra-care tips only when the air calls for them
+def test_clean_air_gets_no_extra_care_tips(home):
+    advice = advise(plan(K.WORK_COMMUTE), home, 60)
+    assert advice.duration_tips == () and advice.before_after_tips == () and advice.recovery_tips == ()
+    assert advice.travel is not None and advice.mask.level is MaskLevel.NONE
+
+
+def test_polluted_air_gets_all_tip_groups(home):
+    advice = advise(plan(K.WORK_COMMUTE), home, 180)
+    assert advice.duration_tips and advice.before_after_tips and advice.recovery_tips

@@ -64,3 +64,58 @@ def test_provider_uses_coordinates_directly():
     http = FakeHttp()
     loc = AirDataProvider(SETTINGS, http_get=http).resolve(latitude=12.9, longitude=77.6)
     assert loc.latitude == 12.9 and http.calls == []
+
+
+def test_network_failures_are_logged_with_a_reason(monkeypatch, caplog):
+    import requests
+    from app import air_data
+
+    class Boom:
+        status_code = 429
+
+    def fail(*args, **kwargs):
+        err = requests.HTTPError("too many requests")
+        err.response = Boom()
+        raise err
+
+    monkeypatch.setattr(requests, "get", fail)
+    with caplog.at_level("WARNING"), pytest.raises(AirDataError):
+        air_data._get_json("https://example.test/x", {"q": "private"}, 1)
+    assert "429" in caplog.text and "HTTPError" in caplog.text
+    assert "private" not in caplog.text  # query parameters (e.g. coordinates) are never logged
+
+
+# ---- places picked on the globe/map: country, state and the coordinates of that state
+from app.air_data import validate_place_name
+
+
+@pytest.mark.parametrize("name", ["India", "Karnataka", "Côte d'Ivoire", "Nuevo León", "Île-de-France", "Bosnia and Herzegovina",
+                                  "Ӂ", "उत्तर प्रदेश", "São Paulo", "Saint-Pierre et Miquelon", "Dnipropetrovs'ka", "Rhône-Alpes (old)"])
+def test_place_names_from_the_map_are_accepted(name):
+    assert validate_place_name(name, "state") == name
+
+
+@pytest.mark.parametrize("bad", ["", "   ", None, 5, "x" * 81, "<script>", "a;b", "India\nChina?", "-start", "../etc"])
+def test_place_names_reject_junk(bad):
+    with pytest.raises(ValueError):
+        validate_place_name(bad, "state")
+
+
+def test_map_selection_is_labelled_state_comma_country():
+    provider = AirDataProvider(SETTINGS, http_get=FakeHttp())
+    loc = provider.resolve(latitude=14.5, longitude=75.7, country="India", state="Karnataka")
+    assert (loc.name, loc.latitude, loc.longitude) == ("Karnataka, India", 14.5, 75.7)
+
+
+def test_country_only_selection_and_device_location_labels():
+    provider = AirDataProvider(SETTINGS, http_get=FakeHttp())
+    assert provider.resolve(latitude=1, longitude=2, country="Monaco").name == "Monaco"
+    assert provider.resolve(latitude=1, longitude=2).name == "Your location"
+
+
+def test_state_without_country_is_rejected_and_coordinates_still_required():
+    provider = AirDataProvider(SETTINGS, http_get=FakeHttp())
+    with pytest.raises(ValueError):
+        provider.resolve(latitude=1, longitude=2, state="Karnataka")
+    with pytest.raises(ValueError):
+        provider.resolve(country="India", state="Karnataka")  # a name alone is not enough to fetch air data

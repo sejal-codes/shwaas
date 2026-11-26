@@ -1,0 +1,8 @@
+{
+  "name": "shwaas-ui-tests",
+  "private": true,
+  "type": "module",
+  "description": "Optional browser-behaviour tests for the Shwaas UI (jsdom). The app itself has no Node dependencies.",
+  "scripts": { "test": "node --test tests/js/ui.test.mjs tests/js/household.test.mjs tests/js/core.test.mjs" },
+  "devDependencies": { "jsdom": "^26.0.0" }
+}

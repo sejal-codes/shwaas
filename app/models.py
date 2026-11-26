@@ -169,3 +169,14 @@ class Plan:
             distance_km=float(distance),
             available_modes=modes,
         )
+
+
+def traveller_profile(plan: Plan, household: Profile) -> Profile:
+    """Who is actually out in the air on this plan.
+
+    Children only travel on a school run. On any other plan the traveller from a family household is
+    an adult, so child-specific rules (stricter travel limits, kid mask tips) apply to school runs only.
+    """
+    if household is Profile.FAMILY_WITH_CHILDREN and plan.kind is not ActivityKind.SCHOOL_RUN:
+        return Profile.ADULT
+    return household

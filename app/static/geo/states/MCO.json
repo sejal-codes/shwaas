@@ -1,0 +1,1 @@
+{"type":"Topology","arcs":[[[9999,5073],[-9999,-5073],[5746,9999],[4253,-4926]]],"transform":{"scale":[0.000007170717071707159,0.000004080408040803808],"translate":[7.3658,43.7227]},"objects":{"MCO":{"type":"GeometryCollection","geometries":[{"arcs":[[0]],"type":"Polygon","properties":{"a":"MCO","n":"Monaco","x":7.4,"y":43.75}}]}}}

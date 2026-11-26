@@ -10,7 +10,22 @@ from app.ai import Assistant
 from app.air_data import AirDataProvider, AirReading
 from app.aqi import severity, severity_alert
 from app.indoor import estimate_indoor_aqi, suggest_fixes
-from app.models import HomeProfile, Plan, Timing
+from app.models import ActivityKind, HomeProfile, Plan, Profile, Timing
+
+
+_HOUSEHOLD_WORDS = {
+    Profile.FAMILY_WITH_CHILDREN: "a family with children",
+    Profile.ELDERLY: "older adults",
+    Profile.ADULT: "adults",
+}
+_ACTIVITY_WORDS = {
+    ActivityKind.SCHOOL_RUN: "taking or collecting a child from school",
+    ActivityKind.WORK_COMMUTE: "their own trip to work, college or university",
+    ActivityKind.MEDICAL: "a medical visit",
+    ActivityKind.ERRAND: "an errand",
+    ActivityKind.EXERCISE: "exercise",
+    ActivityKind.LEISURE: "a leisure outing or walk",
+}
 
 
 def to_jsonable(value: Any) -> Any:
@@ -42,7 +57,11 @@ class AirQualityService:
         home = HomeProfile.from_dict(_require_mapping(payload.get("home"), "home"))
         loc = _require_mapping(payload.get("location"), "location")
         location = self._air.resolve(
-            city=loc.get("city"), latitude=loc.get("latitude"), longitude=loc.get("longitude")
+            city=loc.get("city"),
+            latitude=loc.get("latitude"),
+            longitude=loc.get("longitude"),
+            country=loc.get("country"),
+            state=loc.get("state"),
         )
         language = payload.get("language", "en")
         return home, self._air.reading(location), language
@@ -58,7 +77,7 @@ class AirQualityService:
             "indoor_score": indoor.score,
             "indoor_low": indoor.low,
             "indoor_high": indoor.high,
-            "household": home.profile.value,
+            "household": _HOUSEHOLD_WORDS[home.profile],
             "top_fixes": [{"code": f.code, "points_saved": f.points_saved} for f in fixes],
         }
         explanation = self._assistant.explain(facts, language, kind="assessment")
@@ -99,9 +118,9 @@ class AirQualityService:
         best = advice.travel.recommended if advice.travel else None
         facts = {
             "outdoor_aqi": reading.current_aqi,
-            "activity": plan.kind.value,
+            "activity": _ACTIVITY_WORDS[plan.kind],
             "timing": plan.timing.value,
-            "household": home.profile.value,
+            "household": _HOUSEHOLD_WORDS[home.profile],
             "mask_level": advice.mask.level.value,
             "mask_exposure_reduction_pct": advice.mask.exposure_reduction_pct,
             "recommended_mode": best.mode.value if best else None,

@@ -14,7 +14,7 @@ from typing import Mapping
 
 from app import assumptions as A
 from app.aqi import normalize_aqi
-from app.models import ActivityKind, HomeProfile, Plan, Profile, Timing
+from app.models import ActivityKind, HomeProfile, Plan, Profile, Timing, traveller_profile
 from app.timing import TimeSuggestion, suggest_better_time
 from app.travel import TravelRecommendation, rank_modes
 
@@ -113,8 +113,10 @@ def advise(
     hourly_aqi: Mapping[int, float] | None = None,
 ) -> ActivityAdvice:
     aqi = normalize_aqi(outdoor_aqi)
+    traveller = traveller_profile(plan, home.profile)
+    precautions = aqi > A.MASK_OPTIONAL_AQI  # in clean air, skip the extra-care tips
     travel = (
-        rank_modes(plan, home.profile, aqi)
+        rank_modes(plan, traveller, aqi)
         if plan.involves_travel and plan.distance_km > 0
         else None
     )
@@ -123,11 +125,11 @@ def advise(
         better_time = suggest_better_time(hourly_aqi, current_hour)
 
     return ActivityAdvice(
-        mask=_mask_advice(aqi, home.profile),
+        mask=_mask_advice(aqi, traveller),
         travel=travel,
-        duration_tips=_DURATION_TIPS if plan.involves_travel else (),
-        before_after_tips=_BEFORE_AFTER_TIPS,
-        recovery_tips=_RECOVERY_FULL if home.profile is Profile.ADULT else _RECOVERY_SIMPLE,
+        duration_tips=_DURATION_TIPS if plan.involves_travel and precautions else (),
+        before_after_tips=_BEFORE_AFTER_TIPS if precautions else (),
+        recovery_tips=((_RECOVERY_FULL if traveller is Profile.ADULT else _RECOVERY_SIMPLE) if precautions else ()),
         better_time=better_time,
         optional_alternative=_optional_alternative(plan, aqi),
     )

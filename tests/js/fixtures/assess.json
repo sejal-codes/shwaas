@@ -1,0 +1,46 @@
+{
+  "estimate_note": "Indoor values are estimates based on your answers, not measurements.",
+  "explanation": {
+    "source": "template",
+    "text": "Outdoor air is very poor (AQI 324). We estimate about 317 inside your home (likely 237-396). This is an estimate, not a measurement. The biggest improvement is running a purifier (or a DIY box-fan filter), worth about 159 points."
+  },
+  "fixes": [
+    {
+      "code": "run_purifier",
+      "new_score": 158,
+      "points_saved": 159
+    },
+    {
+      "code": "close_windows",
+      "new_score": 187,
+      "points_saved": 130
+    },
+    {
+      "code": "switch_to_electric_cooking",
+      "new_score": 292,
+      "points_saved": 25
+    }
+  ],
+  "indoor": {
+    "factors": [
+      {
+        "code": "windows_open",
+        "effect": -32
+      },
+      {
+        "code": "cooking_gas",
+        "effect": 25
+      }
+    ],
+    "high": 396,
+    "low": 237,
+    "score": 317,
+    "severity": "very_poor"
+  },
+  "location": "Delhi",
+  "outdoor": {
+    "alert": "Air quality is dangerous today: limit time outdoors, especially for children, older adults and anyone with breathing problems.",
+    "aqi": 324,
+    "severity": "very_poor"
+  }
+}

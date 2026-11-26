@@ -128,3 +128,60 @@ def test_air_provider_failure_becomes_502_without_leaking_details():
 
     res = post(make_client(http=boom), "/api/assess", {"home": HOME, "location": LOCATION})
     assert res.status_code == 502 and "unavailable" in res.json["error"]
+
+
+# ---- web UI is served safely
+def test_home_page_is_served_with_security_headers():
+    res = make_client().get("/")
+    assert res.status_code == 200 and res.mimetype == "text/html"
+    assert b"<h1" in res.data
+    assert "default-src 'self'" in res.headers["Content-Security-Policy"]
+
+
+@pytest.mark.parametrize("path, mime", [
+    ("/static/app.js", "text/javascript"), ("/static/styles.css", "text/css"),
+    ("/static/i18n.json", "application/json"), ("/static/render.js", "text/javascript"),
+])
+def test_static_files_are_served(path, mime):
+    res = make_client().get(path)
+    assert res.status_code == 200 and res.mimetype == mime
+
+
+def test_ai_is_given_plain_words_not_internal_codes():
+    reply = json.dumps({"status": "ok", "plan": {"kind": "work_commute", "distance_km": 5}})
+    gemini = FakeGemini(reply, "Plain advice.")
+    post(make_client(gemini), "/api/plan", {"home": HOME, "location": LOCATION, "timing": "fixed", "plan_text": "college trip"})
+    explain_prompt = gemini.prompts[1]
+    assert "family with children" in explain_prompt and "college" in explain_prompt
+    assert "work_commute" not in explain_prompt and "family_with_children" not in explain_prompt
+
+
+def test_assessment_prompt_uses_plain_words_too():
+    gemini = FakeGemini("Fine.")
+    post(make_client(gemini), "/api/assess", {"home": HOME, "location": LOCATION})
+    assert "family_with_children" not in gemini.prompts[0]
+
+
+def test_explanation_prompt_forbids_greetings_and_missing_info_remarks():
+    from app.ai import _EXPLAIN_SYSTEM
+    assert "no greeting" in _EXPLAIN_SYSTEM and "Never mention missing" in _EXPLAIN_SYSTEM
+
+
+def test_assess_accepts_a_location_picked_on_the_map():
+    http = FakeHttp()
+    res = post(make_client(http=http), "/api/assess",
+               {"home": HOME, "location": {"country": "India", "state": "Karnataka", "latitude": 14.52, "longitude": 75.72}})
+    assert res.status_code == 200 and res.json["location"] == "Karnataka, India"
+    assert http.calls and all("geocoding" not in url for url in http.calls), "no city lookup for a map pick"
+
+
+@pytest.mark.parametrize("location", [
+    {"country": "<b>", "state": "X", "latitude": 1, "longitude": 2},
+    {"country": "India", "state": "K" * 90, "latitude": 1, "longitude": 2},
+    {"country": "India", "state": "Karnataka"},
+    {"state": "Karnataka", "latitude": 1, "longitude": 2},
+    {"country": "India", "latitude": 99, "longitude": 2},
+])
+def test_bad_map_locations_are_rejected_with_400(location):
+    res = post(make_client(), "/api/assess", {"home": HOME, "location": location})
+    assert res.status_code == 400 and "error" in res.json

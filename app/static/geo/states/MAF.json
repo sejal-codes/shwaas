@@ -1,0 +1,1 @@
+{"type":"Topology","arcs":[[[9999,0],[-9999,3235],[9999,6764],[0,-9999]]],"transform":{"scale":[0.000008940894089408711,0.000008870887088708805],"translate":[-63.107,18.0334]},"objects":{"MAF":{"type":"GeometryCollection","geometries":[{"arcs":[[0]],"type":"Polygon","properties":{"a":"MAF","n":"St. Martin","x":-63.08,"y":18.08}}]}}}

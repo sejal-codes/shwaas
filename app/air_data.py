@@ -4,6 +4,7 @@ Parsing is separated from HTTP so it can be unit tested without the network.
 """
 from __future__ import annotations
 
+import logging
 import unicodedata
 from dataclasses import dataclass
 from typing import Any, Callable, Mapping
@@ -13,6 +14,8 @@ import requests
 from app.aqi import pm25_to_naqi
 from app.cache import TTLCache
 from app.config import Settings
+
+log = logging.getLogger(__name__)
 
 GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search"
 AIR_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
@@ -49,6 +52,20 @@ def validate_city(city: Any) -> str:
         unicodedata.category(ch)[0] in "LM" or ch in _CITY_PUNCTUATION for ch in cleaned
     )
     if not (2 <= len(cleaned) <= 80) or not allowed or unicodedata.category(cleaned[0])[0] != "L":
+        raise error
+    return cleaned
+
+
+def validate_place_name(name: Any, field: str) -> str:
+    """Country or state names from the map: letters, marks, digits and a little punctuation, up to 80 chars."""
+    error = ValueError(f"'{field}' must be a place name (up to 80 characters).")
+    if not isinstance(name, str):
+        raise error
+    cleaned = " ".join(name.split())
+    allowed = all(
+        unicodedata.category(ch)[0] in "LMN" or ch in _CITY_PUNCTUATION or ch in "()/&" for ch in cleaned
+    )
+    if not (1 <= len(cleaned) <= 80) or not allowed or unicodedata.category(cleaned[0])[0] not in "LN":
         raise error
     return cleaned
 
@@ -95,11 +112,25 @@ def _get_json(url: str, params: Mapping[str, Any], timeout: float) -> Mapping[st
         response = requests.get(url, params=params, timeout=timeout)
         response.raise_for_status()
         data = response.json()
-    except (requests.RequestException, ValueError):
+    except (requests.RequestException, ValueError) as err:
+        status = getattr(getattr(err, "response", None), "status_code", "")
+        log.warning("Air data request to %s failed: %s %s", url, type(err).__name__, status)
         raise AirDataError("Live air data is unavailable right now. Please try again shortly.") from None
     if not isinstance(data, dict):
         raise AirDataError("The air-quality service returned an unexpected response.")
     return data
+
+
+def _place_label(country: Any, state: Any) -> str:
+    """'State, Country' for a place picked on the map; otherwise a neutral label for device coordinates."""
+    if state is not None and country is None:
+        raise ValueError("'country' is required when 'state' is given.")
+    if country is None:
+        return "Your location"
+    name = validate_place_name(country, "country")
+    if state is None:
+        return name
+    return f"{validate_place_name(state, 'state')}, {name}"
 
 
 class AirDataProvider:
@@ -109,7 +140,15 @@ class AirDataProvider:
         self._geo_cache = TTLCache(settings.geocode_cache_ttl_s, settings.cache_max_entries)
         self._air_cache = TTLCache(settings.air_cache_ttl_s, settings.cache_max_entries)
 
-    def resolve(self, *, city: Any = None, latitude: Any = None, longitude: Any = None) -> Location:
+    def resolve(
+        self,
+        *,
+        city: Any = None,
+        latitude: Any = None,
+        longitude: Any = None,
+        country: Any = None,
+        state: Any = None,
+    ) -> Location:
         if city is not None:
             name = validate_city(city)
             key = name.lower()
@@ -122,7 +161,7 @@ class AirDataProvider:
                 self._geo_cache.set(key, cached)
             return cached
         lat, lon = validate_coordinates(latitude, longitude)
-        return Location("Your location", lat, lon)
+        return Location(_place_label(country, state), lat, lon)
 
     def reading(self, location: Location) -> AirReading:
         key = (round(location.latitude, 2), round(location.longitude, 2))

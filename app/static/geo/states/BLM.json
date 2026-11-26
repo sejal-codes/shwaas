@@ -1,0 +1,1 @@
+{"type":"Topology","arcs":[[[2816,0],[-2816,9999],[9999,-2209],[-7183,-7790]]],"transform":{"scale":[0.000006570657065706536,0.000004300430043004227],"translate":[-62.8574,17.882]},"objects":{"BLM":{"type":"GeometryCollection","geometries":[{"arcs":[[0]],"type":"Polygon","properties":{"a":"BLM","n":"Saint Barthélemy","x":-62.83,"y":17.9}}]}}}

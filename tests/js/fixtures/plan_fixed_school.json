@@ -1,0 +1,83 @@
+{
+  "advice": {
+    "before_after_tips": [
+      "Before leaving: keep windows shut and the purifier (or a DIY box-fan filter) running so you come back to cleaner air. Keep your mask by the door.",
+      "On return: leave shoes at the door and change out of outdoor clothes.",
+      "Do not put the outdoor bag or jacket on beds or sofas."
+    ],
+    "better_time": null,
+    "disclaimer": "General guidance based on estimates, not medical advice.",
+    "duration_tips": [
+      "Drop off or stop as close to the destination as is safe, to spend fewer minutes outside.",
+      "Combine errands into one trip and skip optional stops.",
+      "Wait indoors or inside the vehicle rather than standing outside."
+    ],
+    "mask": {
+      "exposure_reduction_pct": 70,
+      "fit_tips": [
+        "Use an N95/FFP2-type mask. Cloth and surgical masks do little against fine smoke particles.",
+        "Press the nose clip down and check there are no gaps at the cheeks. A loose mask barely helps.",
+        "For children, use a kid-sized N95-type mask only if it seals snugly. If it does not fit, do not force it. Rely on a shorter trip and a closed vehicle instead."
+      ],
+      "level": "recommended"
+    },
+    "optional_alternative": null,
+    "recovery_tips": [
+      "Wash face and hands, and change clothes.",
+      "Rest in the cleanest room, with the purifier on if you have one."
+    ],
+    "travel": {
+      "car_is_fallback": false,
+      "no_safe_option": false,
+      "options": [
+        {
+          "co2_kg": 0.15,
+          "co2_saved_vs_car_kg": 0.7,
+          "exposure_aqi_hours": 102.6,
+          "minutes": 25,
+          "mode": "metro_bus"
+        },
+        {
+          "co2_kg": 0.225,
+          "co2_saved_vs_car_kg": 0.625,
+          "exposure_aqi_hours": 36.5,
+          "minutes": 15,
+          "mode": "carpool"
+        },
+        {
+          "co2_kg": 0.85,
+          "co2_saved_vs_car_kg": 0.0,
+          "exposure_aqi_hours": 32.4,
+          "minutes": 15,
+          "mode": "private_car"
+        }
+      ],
+      "recommended": {
+        "co2_kg": 0.15,
+        "co2_saved_vs_car_kg": 0.7,
+        "exposure_aqi_hours": 102.6,
+        "minutes": 25,
+        "mode": "metro_bus"
+      }
+    }
+  },
+  "explanation": {
+    "source": "template",
+    "text": "Wear a well-fitted N95 for this plan. Best travel option: metro bus, which avoids about 0.7 kg of CO2 compared with driving alone. These are estimates and general guidance, not medical advice."
+  },
+  "plan": {
+    "available_modes": [
+      "carpool",
+      "cycle",
+      "e_rickshaw",
+      "metro_bus",
+      "private_car",
+      "two_wheeler",
+      "walk"
+    ],
+    "distance_km": 5.0,
+    "kind": "school_run",
+    "timing": "fixed"
+  },
+  "status": "ok"
+}

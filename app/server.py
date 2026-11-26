@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 
 from app.ai import Assistant
 from app.air_data import AirDataError, AirDataProvider
@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 def build_service(settings: Settings) -> AirQualityService:
-    client = GeminiClient(settings.gemini_api_key, settings.gemini_model) if settings.gemini_api_key else None
+    client = GeminiClient(settings.gemini_api_key, settings.gemini_models) if settings.gemini_api_key else None
     return AirQualityService(AirDataProvider(settings), Assistant(client, settings.max_plan_chars))
 
 
@@ -51,6 +51,10 @@ def create_app(service: AirQualityService | None = None, settings: Settings | No
         if not isinstance(body, dict):
             raise ValueError("Send a JSON object.")
         return body
+
+    @app.get("/")
+    def index():
+        return send_from_directory(app.static_folder, "index.html")
 
     @app.get("/api/health")
     def health():

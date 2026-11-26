@@ -1,0 +1,1 @@
+{"type":"Topology","arcs":[[[2307,9999],[7692,0],[0,-9999],[-9999,1818],[2307,8181]]],"transform":{"scale":[1.3001300130018233e-7,1.1001100110020893e-7],"translate":[12.4527,41.9028]},"objects":{"VAT":{"type":"GeometryCollection","geometries":[{"arcs":[[0]],"type":"Polygon","properties":{"a":"VAT","n":"Vatican","x":12.45,"y":41.9}}]}}}

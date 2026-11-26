@@ -1,0 +1,110 @@
+{
+  "advice": {
+    "before_after_tips": [
+      "Before leaving: keep windows shut and the purifier (or a DIY box-fan filter) running so you come back to cleaner air. Keep your mask by the door.",
+      "On return: leave shoes at the door and change out of outdoor clothes.",
+      "Do not put the outdoor bag or jacket on beds or sofas."
+    ],
+    "better_time": {
+      "current_aqi": 324,
+      "forecast_aqi": 167,
+      "hour": 11,
+      "improvement_pct": 48
+    },
+    "disclaimer": "General guidance based on estimates, not medical advice.",
+    "duration_tips": [
+      "Drop off or stop as close to the destination as is safe, to spend fewer minutes outside.",
+      "Combine errands into one trip and skip optional stops.",
+      "Wait indoors or inside the vehicle rather than standing outside."
+    ],
+    "mask": {
+      "exposure_reduction_pct": 70,
+      "fit_tips": [
+        "Use an N95/FFP2-type mask. Cloth and surgical masks do little against fine smoke particles.",
+        "Press the nose clip down and check there are no gaps at the cheeks. A loose mask barely helps."
+      ],
+      "level": "recommended"
+    },
+    "optional_alternative": null,
+    "recovery_tips": [
+      "Wash your face and hands.",
+      "Rinse your nose with saline water.",
+      "Drink some water.",
+      "Rest in the cleanest room, with the purifier on if you have one."
+    ],
+    "travel": {
+      "car_is_fallback": false,
+      "no_safe_option": false,
+      "options": [
+        {
+          "co2_kg": 0.0,
+          "co2_saved_vs_car_kg": 0.68,
+          "exposure_aqi_hours": 119.3,
+          "minutes": 17,
+          "mode": "cycle"
+        },
+        {
+          "co2_kg": 0.06,
+          "co2_saved_vs_car_kg": 0.62,
+          "exposure_aqi_hours": 56.2,
+          "minutes": 13,
+          "mode": "e_rickshaw"
+        },
+        {
+          "co2_kg": 0.12,
+          "co2_saved_vs_car_kg": 0.56,
+          "exposure_aqi_hours": 92.9,
+          "minutes": 22,
+          "mode": "metro_bus"
+        },
+        {
+          "co2_kg": 0.14,
+          "co2_saved_vs_car_kg": 0.54,
+          "exposure_aqi_hours": 54.0,
+          "minutes": 10,
+          "mode": "two_wheeler"
+        },
+        {
+          "co2_kg": 0.18,
+          "co2_saved_vs_car_kg": 0.5,
+          "exposure_aqi_hours": 29.2,
+          "minutes": 12,
+          "mode": "carpool"
+        },
+        {
+          "co2_kg": 0.68,
+          "co2_saved_vs_car_kg": 0.0,
+          "exposure_aqi_hours": 25.9,
+          "minutes": 12,
+          "mode": "private_car"
+        }
+      ],
+      "recommended": {
+        "co2_kg": 0.0,
+        "co2_saved_vs_car_kg": 0.68,
+        "exposure_aqi_hours": 119.3,
+        "minutes": 17,
+        "mode": "cycle"
+      }
+    }
+  },
+  "explanation": {
+    "source": "gemini",
+    "text": "Go around 11 and wear an N95."
+  },
+  "plan": {
+    "available_modes": [
+      "carpool",
+      "cycle",
+      "e_rickshaw",
+      "metro_bus",
+      "private_car",
+      "two_wheeler",
+      "walk"
+    ],
+    "distance_km": 4.0,
+    "kind": "errand",
+    "timing": "flexible"
+  },
+  "status": "ok"
+}

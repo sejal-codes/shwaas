@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Understand your indoor and outdoor air today and get simple steps that fit your day.">
+  <title>Shwaas: Air Quality Assistant</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script type="module" src="/static/app.js"></script>
+</head>
+<body data-severity="idle">
+  <a class="skip-link" href="#main" data-i18n="skip">Skip to main content</a>
+  <div class="aura" aria-hidden="true"></div>
+  <div class="blobs" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="scroll-progress" aria-hidden="true"><span id="scroll-progress"></span></div>
+
+  <header class="hero">
+    <div class="hero__top">
+      <span class="brand" data-i18n="brand">Shwaas</span>
+      <button id="lang-toggle" class="btn btn--ghost" type="button" lang="hi"
+              data-i18n="lang.other" data-i18n-aria-label="lang.switch" aria-label="Switch language to Hindi">हिन्दी</button>
+    </div>
+    <div class="hero__body">
+      <div class="orb" aria-hidden="true"></div>
+      <div>
+        <h1 data-i18n="hero.title">Breathe easier, one choice at a time.</h1>
+        <p class="lead" data-i18n="app.tagline">Understand your air today, indoors and out, and get simple steps that fit your day.</p>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <noscript><p class="notice notice--error">This page needs JavaScript to work.</p></noscript>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <div id="error" class="notice notice--error" role="alert" hidden></div>
+
+    <section id="scene-household" class="scene" aria-labelledby="home-title">
+      <h2 id="home-title" class="scene__title" data-i18n="home.title">First, a little about home</h2>
+      <p class="scene__lede" data-i18n="home.intro">A few quick questions. Nothing is saved after you close the page.</p>
+      <div class="chat">
+        <div id="chat-log" class="chat__log" role="log" aria-live="polite" data-i18n-aria-label="chat.label" aria-label="Conversation about your household"></div>
+        <div id="chat-chips" class="chat__chips" hidden></div>
+        <div id="chat-actions" class="chat__actions" hidden>
+          <button id="chat-next" class="btn btn--primary btn--small" type="button" data-i18n="chat.next">Next: where are you?</button>
+          <button id="chat-change" class="btn btn--ghost btn--small" type="button" data-i18n="chat.change">Change my answer</button>
+        </div>
+        <div id="chat-composer" class="composer">
+          <label for="chat-input" class="sr-only" data-i18n="chat.input">Your answer</label>
+          <input id="chat-input" class="composer__input" type="text" maxlength="200" autocomplete="off" enterkeyhint="send" placeholder="Try “Only me” or “Me and my family”" data-i18n-placeholder="chat.placeholder">
+          <button id="chat-send" class="composer__send" type="button" data-i18n="chat.send">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="scene-location" class="scene scene--wide" aria-labelledby="location-title">
+      <h2 id="location-title" class="scene__title" data-i18n="location.title">Where in the world are you?</h2>
+      <p id="location-hint" class="scene__lede" data-i18n="location.hint">Turn the globe, zoom in, and tap your country.</p>
+
+      <div id="stage" class="stage" data-mode="globe" data-ready="false">
+        <div class="stage__glow" aria-hidden="true"></div>
+        <canvas id="globe" class="globe" tabindex="0" role="img" aria-label="Interactive globe. Drag to turn it and tap a country to open it. You can also search below with the keyboard." data-i18n-aria-label="globe.label"></canvas>
+        <svg id="flatmap" class="flatmap" role="group" aria-label="Map" preserveAspectRatio="xMidYMid meet"></svg>
+        <p id="stage-title" class="stage__title" tabindex="-1" aria-live="polite" hidden></p>
+        <div class="stage__controls">
+          <button id="zoom-in" class="icon-btn" type="button" aria-label="Zoom in" data-i18n-aria-label="map.zoom_in"><span aria-hidden="true">+</span></button>
+          <button id="zoom-out" class="icon-btn" type="button" aria-label="Zoom out" data-i18n-aria-label="map.zoom_out"><span aria-hidden="true">&minus;</span></button>
+          <button id="map-reset" class="icon-btn" type="button" aria-label="Reset view" data-i18n-aria-label="map.reset"><span aria-hidden="true">&#x27F2;</span></button>
+        </div>
+        <button id="map-back" class="btn btn--ghost btn--small stage__back" type="button" data-i18n="map.back" hidden>Back to the globe</button>
+        <div id="tooltip" class="tooltip" role="presentation" hidden></div>
+        <p id="stage-loading" class="stage__loading" data-i18n="globe.loading">Spinning up the globe…</p>
+      </div>
+      <p id="globe-hint" class="hint" data-i18n="globe.hint">Click the globe, then scroll or pinch to zoom.</p>
+
+      <div class="finder">
+        <label for="place-search" class="label" data-i18n="location.search.label">Or search for a country or region</label>
+        <div class="finder__box">
+          <input id="place-search" class="finder__input" type="text" role="combobox" aria-expanded="false" aria-controls="place-results" aria-autocomplete="list" autocomplete="off" maxlength="60" placeholder="Start typing…" data-i18n-placeholder="location.search.placeholder">
+          <ul id="place-results" class="finder__list" role="listbox" hidden></ul>
+        </div>
+        <p id="place-count" class="sr-only" role="status"></p>
+      </div>
+
+      <p id="location-picked" class="picked" role="status" hidden>
+        <span class="picked__dot" aria-hidden="true"></span>
+        <span id="picked-text"></span>
+        <button id="picked-change" class="link-btn" type="button" data-i18n="location.change">Change</button>
+      </p>
+
+      <details id="other-location" class="more">
+        <summary data-i18n="location.other.summary">Prefer to type a city or share your device location?</summary>
+        <div class="field" id="location-field">
+          <label for="city" class="label" data-i18n="location.city.label">City or town</label>
+          <div class="row">
+            <input id="city" name="city" type="text" maxlength="80" autocomplete="address-level2" placeholder="Delhi">
+            <button id="geo-btn" class="btn btn--ghost" type="button" data-i18n="location.use">Use my device location</button>
+          </div>
+          <div id="geo-active" class="row" hidden>
+            <p class="muted" data-i18n="location.using">Using your device location for this check only.</p>
+            <button id="geo-clear" class="btn btn--ghost" type="button" data-i18n="location.clear">Type a city instead</button>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <form id="home-form" novalidate>
+      <section id="scene-home" class="scene" aria-labelledby="env-title">
+        <h2 id="env-title" class="scene__title" data-i18n="env.title">A few things about your home</h2>
+        <p class="scene__lede" data-i18n="env.lede">Quick taps, no typing.</p>
+        <p id="quick-progress" class="quick__progress" aria-live="polite"></p>
+
+        <fieldset class="beat" data-beat="windows">
+          <legend class="beat__q" data-i18n="q.windows">How often are your windows open?</legend>
+          <div class="pills">
+            <label class="pill"><input type="radio" name="windows" value="open"><span class="pill__body"><span class="pill__icon" aria-hidden="true">🪟</span><span data-i18n="windows.open">Mostly open</span></span></label>
+            <label class="pill"><input type="radio" name="windows" value="sometimes"><span class="pill__body"><span class="pill__icon" aria-hidden="true">🌗</span><span data-i18n="windows.sometimes">Sometimes</span></span></label>
+            <label class="pill"><input type="radio" name="windows" value="closed"><span class="pill__body"><span class="pill__icon" aria-hidden="true">🔒</span><span data-i18n="windows.closed">Mostly closed</span></span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="beat" data-beat="cooking">
+          <legend class="beat__q" data-i18n="q.cooking">How do you cook at home?</legend>
+          <div class="pills">
+            <label class="pill"><input type="radio" name="cooking" value="gas"><span class="pill__body"><span class="pill__icon" aria-hidden="true">🔥</span><span data-i18n="cooking.gas">Gas stove</span></span></label>
+            <label class="pill"><input type="radio" name="cooking" value="electric"><span class="pill__body"><span class="pill__icon" aria-hidden="true">⚡</span><span data-i18n="cooking.electric">Induction or electric</span></span></label>
+            <label class="pill"><input type="radio" name="cooking" value="biomass"><span class="pill__body"><span class="pill__icon" aria-hidden="true">🪵</span><span data-i18n="cooking.biomass">Wood, coal or dung cake</span></span></label>
+          </div>
+          <label class="toggle" id="exhaust-field"><input type="checkbox" name="has_kitchen_exhaust"><span class="toggle__body" data-i18n="q.exhaust">My kitchen has an exhaust fan or chimney</span></label>
+        </fieldset>
+
+        <fieldset class="beat" data-beat="heating">
+          <legend class="beat__q" data-i18n="q.heating">How do you keep your home warm?</legend>
+          <div class="pills">
+            <label class="pill"><input type="radio" name="heating" value="none"><span class="pill__body"><span class="pill__icon" aria-hidden="true">🧣</span><span data-i18n="heating.none">Clothes and blankets only</span></span></label>
+            <label class="pill"><input type="radio" name="heating" value="electric"><span class="pill__body"><span class="pill__icon" aria-hidden="true">♨️</span><span data-i18n="heating.electric">Electric heater</span></span></label>
+            <label class="pill"><input type="radio" name="heating" value="combustion"><span class="pill__body"><span class="pill__icon" aria-hidden="true">🏕️</span><span data-i18n="heating.combustion">Burning wood, coal or waste</span></span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="beat" data-beat="purifier">
+          <legend class="beat__q" data-i18n="q.purifier">Do you have an air purifier at home?</legend>
+          <div class="pills pills--duo">
+            <label class="pill"><input type="radio" name="purifier" value="yes"><span class="pill__body"><span class="pill__icon" aria-hidden="true">🌬️</span><span data-i18n="purifier.yes">Yes</span></span></label>
+            <label class="pill"><input type="radio" name="purifier" value="no"><span class="pill__body"><span class="pill__icon" aria-hidden="true">🙅</span><span data-i18n="purifier.no">No</span></span></label>
+          </div>
+        </fieldset>
+
+        <details class="more">
+          <summary data-i18n="more.summary">A couple of finishing touches (optional)</summary>
+          <div class="checks">
+            <label class="check"><input type="checkbox" name="burns_incense"><span data-i18n="q.incense">We burn incense or mosquito coils</span></label>
+            <label class="check"><input type="checkbox" name="indoor_smoking"><span data-i18n="q.smoking">Someone smokes indoors</span></label>
+          </div>
+        </details>
+
+        <button id="assess-btn" class="btn btn--primary btn--big" type="submit" data-i18n="submit.assess">Check my air</button>
+      </section>
+    </form>
+
+    <section id="results" class="stack" aria-labelledby="results-title" hidden>
+      <h2 id="results-title" tabindex="-1" data-i18n="results.title">Your air today</h2>
+      <div id="results-body" class="stack"></div>
+    </section>
+
+    <section id="plan-section" class="card" aria-labelledby="plan-title" hidden>
+      <h2 id="plan-title" data-i18n="plan.title">Planning something?</h2>
+      <p class="muted" data-i18n="plan.intro">Tell me what you are doing and when. I will only give advice about that.</p>
+      <form id="plan-form" novalidate>
+        <p id="plan-question" class="notice" role="status" hidden></p>
+        <div class="field">
+          <label for="plan-text" class="label" data-i18n="plan.label">Your plan</label>
+          <textarea id="plan-text" name="plan_text" rows="3" maxlength="300" placeholder="For example: taking my son to school at 8 am" data-i18n-placeholder="plan.hint"></textarea>
+        </div>
+        <fieldset class="field">
+          <legend data-i18n="timing.legend">Can the time change?</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="timing" value="fixed"><span class="choice__body"><span class="choice__icon" aria-hidden="true">📌</span><span data-i18n="timing.fixed">No, it is fixed</span></span></label>
+            <label class="choice"><input type="radio" name="timing" value="flexible"><span class="choice__body"><span class="choice__icon" aria-hidden="true">🕐</span><span data-i18n="timing.flexible">Yes, I can change it</span></span></label>
+          </div>
+        </fieldset>
+        <button id="plan-btn" class="btn btn--primary" type="submit" data-i18n="plan.submit">Get advice for this plan</button>
+      </form>
+
+      <form id="fallback-form" novalidate hidden>
+        <p class="notice" role="status" data-i18n="fallback.intro">The smart plan reader is offline. Choose your plan instead.</p>
+        <div class="field">
+          <label for="fallback-kind" class="label" data-i18n="fallback.kind">What kind of plan?</label>
+          <select id="fallback-kind" name="kind">
+            <option value="school_run" data-i18n="kind.school_run">School drop-off or pickup</option>
+            <option value="work_commute" data-i18n="kind.work_commute">Travel to work</option>
+            <option value="medical" data-i18n="kind.medical">Medical visit</option>
+            <option value="errand" data-i18n="kind.errand">Errand or shopping</option>
+            <option value="exercise" data-i18n="kind.exercise">Exercise</option>
+            <option value="leisure" data-i18n="kind.leisure">Leisure or a walk</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fallback-distance" class="label" data-i18n="fallback.distance">About how far (km)?</label>
+          <input id="fallback-distance" name="distance" type="number" inputmode="decimal" min="0" max="200" step="0.1">
+        </div>
+        <button id="fallback-btn" class="btn btn--primary" type="submit" data-i18n="fallback.submit">Get advice</button>
+      </form>
+    </section>
+
+    <section id="advice" class="stack" aria-labelledby="advice-title" hidden>
+      <h2 id="advice-title" tabindex="-1" data-i18n="advice.title">Advice for your plan</h2>
+      <div id="advice-body" class="stack"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p data-i18n="footer.privacy">Nothing you enter is stored. Your device location, if you share it, is rounded and used only for this check.</p>
+    <p data-i18n="disclaimer">General guidance based on estimates, not medical advice. If you or someone at home has trouble breathing, chest pain or dizziness, seek medical help.</p>
+  </footer>
+</body>
+</html>

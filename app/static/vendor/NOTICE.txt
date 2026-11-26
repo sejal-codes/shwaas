@@ -1,0 +1,16 @@
+Third-party code and data bundled with this app
+================================================
+
+vendor/geo.js
+  A minified bundle of two small open-source libraries (no other code), used for the globe and map:
+    d3-geo 3.1.2 (with d3-array 3.2.5)  - Copyright 2010-2026 Mike Bostock - ISC licence
+    topojson-client 3.1.0               - Copyright 2016 Mike Bostock - ISC licence
+  ISC licence: Permission to use, copy, modify, and/or distribute this software for any purpose with or without
+  fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES.
+
+geo/world.json and geo/states/*.json
+  Simplified country and state/province boundaries derived from Natural Earth
+  (naturalearthdata.com, 1:50m admin-0 countries and 1:10m admin-1 states and provinces). Natural Earth is
+  in the public domain. The shapes are simplified for the web and are for illustration, not for legal borders.
+  See scripts/geo/README.md for how they were produced.

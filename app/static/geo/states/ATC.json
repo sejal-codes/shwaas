@@ -1,0 +1,1 @@
+{"type":"Topology","arcs":[[[9691,8582],[308,-8582],[-9735,1500],[-264,8499],[9691,-1417]]],"transform":{"scale":[0.0000022702270227023088,0.000001200120012001068],"translate":[123.575,-12.4386]},"objects":{"ATC":{"type":"GeometryCollection","geometries":[{"arcs":[[0]],"type":"Polygon","properties":{"a":"ATC","n":"Ashmore and Cartier Islands","x":123.59,"y":-12.43}}]}}}

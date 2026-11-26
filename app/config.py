@@ -8,7 +8,13 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Settings:
     gemini_api_key: str | None = None
-    gemini_model: str = "gemini-flash-latest"
+    # Tried in order; if one is overloaded the next is used. Override with GEMINI_MODEL="a,b,c".
+    gemini_models: tuple[str, ...] = (
+        "gemini-flash-lite-latest",
+        "gemini-3.1-flash-lite",
+        "gemini-3.5-flash-lite",
+        "gemini-3.5-flash",
+    )
     http_timeout_s: float = 6.0
     air_cache_ttl_s: int = 600  # live AQI is refreshed at most every 10 minutes
     geocode_cache_ttl_s: int = 86_400
@@ -19,7 +25,8 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> "Settings":
+        chosen = tuple(m.strip() for m in (os.environ.get("GEMINI_MODEL") or "").split(",") if m.strip())
         return cls(
             gemini_api_key=os.environ.get("GEMINI_API_KEY") or None,
-            gemini_model=os.environ.get("GEMINI_MODEL") or cls.gemini_model,
+            gemini_models=chosen or cls.gemini_models,
         )
