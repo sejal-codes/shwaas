@@ -88,6 +88,15 @@ and says which station, how far and how old. If there is none, it falls back to 
 India's 0-500 NAQI computed from PM2.5, and the page shows the PM2.5 in µg/m³ next to it.
 Check what monitors exist near a place with `python -m scripts.check_openaq 14.37 75.67`.
 
+## Deploying to the web
+The app runs under gunicorn (`Procfile` and `Dockerfile` are included). Set `GEMINI_API_KEY` (and optionally `OPENAQ_API_KEY`)
+as environment variables on the host, plus `TRUST_PROXY=1` so rate limiting sees each visitor, not the host's proxy.
+- **Render (free):** New Web Service, connect the repo, build `pip install -r requirements.txt`,
+  start `gunicorn "app.server:create_app()" --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60`.
+- **Google Cloud Run:** `gcloud run deploy shwaas --source . --region asia-south1 --allow-unauthenticated --set-env-vars TRUST_PROXY=1`
+  (then add the keys as environment variables or Secret Manager secrets).
+Health check: `/api/health`.
+
 ## Configuration
 Set `GEMINI_API_KEY` as an environment variable or Codespaces secret. Optionally set `GEMINI_MODEL` to a comma-separated
 list of model names (tried in order; the default is a fail-over chain of four).

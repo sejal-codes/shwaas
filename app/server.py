@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 from flask import Flask, jsonify, request, send_from_directory
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from app.ai import Assistant
 from app.air_data import AirDataError, AirDataProvider
@@ -30,6 +32,8 @@ def create_app(service: AirQualityService | None = None, settings: Settings | No
 
     app = Flask(__name__, static_folder="static", static_url_path="/static")
     app.config["MAX_CONTENT_LENGTH"] = settings.max_request_bytes
+    if settings.trust_proxy:  # behind a hosting proxy the real visitor address is in X-Forwarded-For
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     @app.before_request
     def _limit() -> Any:
@@ -93,4 +97,4 @@ def create_app(service: AirQualityService | None = None, settings: Settings | No
 
 
 if __name__ == "__main__":
-    create_app().run(host="0.0.0.0", port=5000)
+    create_app().run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")))

@@ -25,6 +25,7 @@ class Settings:
     max_plan_chars: int = 300
     rate_limit_per_min: int = 30
     max_request_bytes: int = 16_384
+    trust_proxy: bool = False  # set TRUST_PROXY=1 behind a hosting proxy so each visitor has their own rate limit
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -32,5 +33,6 @@ class Settings:
         return cls(
             gemini_api_key=os.environ.get("GEMINI_API_KEY") or None,
             openaq_api_key=os.environ.get("OPENAQ_API_KEY") or None,
+            trust_proxy=os.environ.get("TRUST_PROXY") == "1",
             gemini_models=chosen or cls.gemini_models,
         )

@@ -185,3 +185,23 @@ def test_assess_accepts_a_location_picked_on_the_map():
 def test_bad_map_locations_are_rejected_with_400(location):
     res = post(make_client(), "/api/assess", {"home": HOME, "location": location})
     assert res.status_code == 400 and "error" in res.json
+
+
+# ---- running behind a hosting proxy
+def test_each_visitor_gets_their_own_rate_limit_behind_a_proxy():
+    def hits(trust):
+        strict = Settings(gemini_api_key="k", rate_limit_per_min=1, trust_proxy=trust)
+        client = make_client(settings=strict)
+        first = client.get("/api/health", headers={"X-Forwarded-For": "1.1.1.1"}).status_code
+        second = client.get("/api/health", headers={"X-Forwarded-For": "2.2.2.2"}).status_code
+        return first, second
+
+    assert hits(True) == (200, 200), "different visitors are counted separately"
+    assert hits(False) == (200, 429), "without the proxy setting, forwarded headers are never trusted"
+
+
+def test_proxy_setting_comes_from_the_environment(monkeypatch):
+    monkeypatch.setenv("TRUST_PROXY", "1")
+    assert Settings.from_env().trust_proxy is True
+    monkeypatch.delenv("TRUST_PROXY")
+    assert Settings.from_env().trust_proxy is False
